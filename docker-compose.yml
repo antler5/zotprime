@@ -1,5 +1,5 @@
 services:
-  zotprime-db:
+  mysql:
     image: "uniuu/zotprime-db:${VER}"
     restart: always
     environment:
@@ -13,7 +13,7 @@ services:
     networks:
       zotprime:
         ipv4_address: 10.5.5.2
-  zotprime-elasticsearch:
+  elasticsearch:
     image: "uniuu/zotprime-elasticsearch:${VER}"
     mem_limit: 1024m
     mem_reservation: 1024m
@@ -36,21 +36,21 @@ services:
     networks:
       zotprime:
         ipv4_address: 10.5.5.3
-  zotprime-redis:
+  redis:
     image: "uniuu/zotprime-redis:${VER}"
     volumes:
       - /etc/localtime:/etc/localtime:ro
     networks:
       zotprime:
         ipv4_address: 10.5.5.4
-  zotprime-memcached:
+  memcached:
     image: "uniuu/zotprime-memcached:${VER}"
     volumes:
       - /etc/localtime:/etc/localtime:ro
     networks:
       zotprime:
         ipv4_address: 10.5.5.5
-  zotprime-localstack:
+  localstack:
     image: "uniuu/zotprime-localstack:${VER}"
     environment:
       - SERVICES=sns,sqs,apigateway
@@ -59,7 +59,7 @@ services:
     networks:
       zotprime:
         ipv4_address: 10.5.5.6
-  zotprime-minio:
+  minio:
     image: "uniuu/zotprime-minio:${VER}"
     environment:
       - MINIO_ROOT_USER=${MINIOROOTUSER}
@@ -85,43 +85,32 @@ services:
       - DSURI=${DSHOST}
       - S3POINTURI=${S3HOST}
     depends_on:
-      - zotprime-db
-      - zotprime-elasticsearch
-      - zotprime-redis
-      - zotprime-memcached 
-      - zotprime-tinymceclean
-      - zotprime-streamserver
-    links:
-      - zotprime-db:mysql
-      - zotprime-elasticsearch:elasticsearch
-      - zotprime-redis:redis
-      - zotprime-memcached:memcached
-      - zotprime-localstack:localstack
-      - zotprime-minio:minio
-      - zotprime-tinymceclean:tinymceclean
-      - zotprime-streamserver:streamserver
+      - mysql
+      - elasticsearch
+      - redis
+      - memcached
+      - tinymceclean
+      - streamserver
     restart: always
     networks:
       zotprime:
         aliases:
           - dataserver
         ipv4_address: 10.5.5.8
-  zotprime-tinymceclean:
+  tinymceclean:
     image: "uniuu/zotprime-tinymceclean:${VER}"
     depends_on:
-      - zotprime-db
-      - zotprime-elasticsearch
-      - zotprime-redis
-      - zotprime-memcached
-    links:
-      - zotprime-redis:redis 
+      - mysql
+      - elasticsearch
+      - redis
+      - memcached
     volumes:
       - /etc/localtime:/etc/localtime:ro
     restart: always
     networks:
       zotprime:
         ipv4_address: 10.5.5.9
-  zotprime-streamserver:
+  streamserver:
     image: "uniuu/zotprime-streamserver:${VER}"
     ports:
       - "8081:81"
@@ -129,12 +118,10 @@ services:
       - /etc/localtime:/etc/localtime:ro
     restart: always
     depends_on:
-      - zotprime-db
-      - zotprime-elasticsearch
-      - zotprime-redis
-      - zotprime-memcached 
-    links:
-      - zotprime-redis:redis
+      - mysql
+      - elasticsearch
+      - redis
+      - memcached
     networks:
       zotprime:
         ipv4_address: 10.5.5.10
@@ -144,8 +131,6 @@ services:
       - "8083:80"
     environment:
       - PMA_HOST=mysql
-    links:
-      - zotprime-db:mysql
     volumes:
       - /etc/localtime:/etc/localtime:ro
     networks:
