@@ -8,6 +8,7 @@ services:
       - MARIADB_USER=${MYSQLUSER}
       - MARIADB_PASSWORD=${MYSQLPASSWORD}
     volumes:
+      - dbdata2:/run/mysqld
       - dbdata:/var/lib/mysql
       - /etc/localtime:/etc/localtime:ro
     networks:
@@ -137,6 +138,8 @@ services:
       zotprime:
         ipv4_address: 10.5.5.11
 volumes:
+  dbdata2:
+   driver: local
   dbdata:
    driver: local
 networks:
